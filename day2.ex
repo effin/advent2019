@@ -1,37 +1,59 @@
-defmodule Day1 do
-  def total_fuel(input) do
+defmodule Day2 do
+  def run(input) do
     input
-    |> String.split("\n", trim: true)
+    |> String.split(",", trim: true)
     |> Enum.map(fn line -> String.to_integer(line) end)
-    |> Enum.map(fn mass -> fuel(mass) end)
-    |> Enum.sum()
+    |> process(0)
+    |> Enum.at(0)
   end
 
-  defp fuel(mass) when mass <= 6 do
-    0
-  end
-
-  defp fuel(mass) do
-    div(mass, 3) - 2
-  end
-
-  def total_fuel_2(input) do
+  def replaceAndRun(input, noun \\ 12, verb \\ 2) do
     input
-    |> String.split("\n", trim: true)
-    |> Enum.map(fn line -> String.to_integer(line) end)
-    |> Enum.map(fn mass -> fuel(mass) end)
-    |> Enum.map(fn mass -> mass + mass_fuel(mass, 0) end)
-    |> Enum.sum()
+    |> String.split(",", trim: true)
+    |> Enum.map(
+         fn line ->
+           {integer, _left_over} = Integer.parse(line)
+           integer
+         end
+       )
+    |> List.replace_at(1, noun)
+    |> List.replace_at(2, verb)
+    |> process(0)
+    |> Enum.at(0)
   end
 
-  defp mass_fuel(mass, acc) when mass <= 0 do
-    acc
+  def findNounVerb(input, nounverb \\ 0) do
+    if nounverb > 9999  do
+      -1
+    else
+      noun = div(nounverb, 100)
+      verb = nounverb - 100 * noun
+      if replaceAndRun(input, noun, verb) == 19690720 do
+        100 * noun + verb
+      else
+        findNounVerb(input, nounverb + 1)
+      end
+    end
   end
 
-  defp mass_fuel(mass, acc) do
-    f = fuel(mass)
-    mass_fuel(f, acc + f)
+  defp process(p, index) do
+    op = Enum.at(p, index)
+    if op == 99 do
+      p
+    else
+      res = operate(op, Enum.at(p, Enum.at(p, index + 1)), Enum.at(p, Enum.at(p, index + 2)))
+      process(List.replace_at(p, Enum.at(p, index + 3), res), index + 4)
+    end
   end
+
+  defp operate(op, op1, op2) do
+    if op == 1 do
+      op1 + op2
+    else
+      op1 * op2
+    end
+  end
+
 end
 
 case System.argv() do
@@ -39,38 +61,36 @@ case System.argv() do
 
     ExUnit.start()
 
-    defmodule Day1Test do
+    defmodule Day2Test do
       use ExUnit.Case
 
-      import Day1
+      import Day2
 
-      test "total_fuel" do
-        assert total_fuel(
-                 """
-                 12
-                 14
-                 1969
-                 100756
-                 """
-               ) == 2 + 2 + 654 + 33583
+      test "example0" do
+        assert run("1,9,10,3,2,3,11,0,99,30,40,50") == 3500
       end
 
-      test "total_fuel_2" do
-        assert total_fuel_2(
-                 """
-                 12
-                 14
-                 1969
-                 100756
-                 """
-               ) == 2 + 2 + 966 + 50346
+      test "example1" do
+        assert run("1,0,0,0,99") == 2
+      end
+
+      test "example2" do
+        assert run("2,3,0,3,99") == 2
+      end
+
+      test "example3" do
+        assert run("2,4,4,5,99,0") == 2
+      end
+
+      test "example4" do
+        assert run("1,1,1,4,99,5,6,0,99") == 30
       end
     end
 
   [input_file] ->
     input_file
     |> File.read!()
-    |> (&(Integer.to_string(Day1.total_fuel(&1)) <> " " <> Integer.to_string(Day1.total_fuel_2(&1)))).()
+    |> (&(Integer.to_string(Day2.replaceAndRun(&1)) <> " " <> Integer.to_string(Day2.findNounVerb(&1)))).()
     |> IO.puts
 
   _ ->
