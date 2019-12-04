@@ -19,7 +19,7 @@ defmodule Day3 do
     {_pos, nearest, minSteps, _currentSteps} = Enum.reduce(
       second,
       {5000050000, 1000000, 1000000, 0},
-      fn w, pos -> walkWithCheck(String.to_integer(String.slice(w, 1..-1)), pos, map, getDirection(w)) end
+      fn w, pos -> walk(String.to_integer(String.slice(w, 1..-1)), pos, map, getDirection(w)) end
     )
     {nearest, minSteps}
   end
@@ -39,7 +39,7 @@ defmodule Day3 do
     d
   end
 
-  defp walkWithCheck(n, {pos, nearest, minSteps, currentSteps}, map, f) do
+  defp walk(n, {pos, nearest, minSteps, currentSteps}, map, f) do
     if n == 0 do
       {pos, nearest, minSteps, currentSteps}
     else
@@ -48,9 +48,9 @@ defmodule Day3 do
         newNearest = min(nearest, calculateManhattan(newPos))
         firstSteps = Enum.count(map) - Enum.find_index(map, fn x -> x == newPos end) - 1
         newMinSteps = min(minSteps, currentSteps + firstSteps + 1)
-        walkWithCheck(n - 1, {newPos, newNearest, newMinSteps, currentSteps + 1}, map, f)
+        walk(n - 1, {newPos, newNearest, newMinSteps, currentSteps + 1}, map, f)
       else
-        walkWithCheck(n - 1, {newPos, nearest, minSteps, currentSteps + 1}, map, f)
+        walk(n - 1, {newPos, nearest, minSteps, currentSteps + 1}, map, f)
       end
     end
   end
